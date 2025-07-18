@@ -44,6 +44,7 @@ if(WIN32)
     # WIN32 will be built as a GUI application
     add_executable(
       ${CMAKE_PROJECT_NAME}
+      WIN32
       ${CMAKE_SOURCE_DIR}/src/main.c
       ${sources}
       ${app_sources}
@@ -68,7 +69,7 @@ include_directories(
   # ${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/
   ${SDL2_INCLUDE_DIRS}?
   ${SDL2_IMAGE_INCLUDE_DIRS}?
-  )
+)
   
 
 # SDL2::SDL2main may or may not be available. It is e.g. required by Windows GUI applications
@@ -79,7 +80,7 @@ include_directories(
     
 # # Link to the actual SDL2 library. SDL2::SDL2 is the shared SDL library, SDL2::SDL2-static is the static SDL libarary.
 # target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL2::SDL2)
-# target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
 
 # # Tests
 # enable_testing()
