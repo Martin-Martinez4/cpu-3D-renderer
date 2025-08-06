@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <SDL.h>
+
+#include <SDL2/SDL.h>
 
 bool is_running = false;
 SDL_Window* window = NULL;
@@ -16,6 +17,12 @@ bool initialize_window(void){
     fprintf(stderr, "Error initializing SDL.\n");
     return false;
   }
+
+  SDL_DisplayMode display_mode;
+  SDL_GetCurrentDisplayMode(0, &display_mode);
+
+  window_width = display_mode.w;
+  window_height = display_mode.h;
 
   window = SDL_CreateWindow(
     NULL, 
@@ -36,15 +43,7 @@ bool initialize_window(void){
     return false;
   }
 
-  // SDL_PIXELFORMAT_ARGB8888 Aplha, Red, Green, Blue, 8, 8, 8, 8
-  color_buffer_texture = SDL_CreateTexture(
-    renderer,
-    SDL_PIXELFORMAT_ARGB8888,
-    SDL_TEXTUREACCESS_STREAMING,
-    window_width,
-    window_height
-  );
-
+  // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
   return true;
 }
 
@@ -55,7 +54,18 @@ void setup(void){
     SDL_DestroyWindow(window);
     SDL_Quit();
   }
+  // SDL_PIXELFORMAT_ARGB8888 Aplha, Red, Green, Blue, 8, 8, 8, 8
+  color_buffer_texture = SDL_CreateTexture(
+    renderer,
+    SDL_PIXELFORMAT_ARGB8888,
+    SDL_TEXTUREACCESS_STREAMING,
+    window_width,
+    window_height
+  );
+  
   color_buffer[(window_width * 10) + 20] = 0xFFFF0000;
+
+
 }
 
 void process_input(void){
@@ -78,6 +88,16 @@ void update(void){
 
 }
 
+void render_color_buffer(void){
+  SDL_UpdateTexture(
+    color_buffer_texture,
+    NULL,
+    color_buffer,
+    (int)(window_width * sizeof(uint32_t))
+  );
+  SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
+}
+
 void clear_color_buffer(uint32_t color){
   for(int y =  0; y < window_height; y++){
     for(int x = 0; x < window_width; x++){
@@ -86,11 +106,46 @@ void clear_color_buffer(uint32_t color){
   }
 }
 
+void draw_grid(uint32_t color, uint8_t size,uint8_t line_width){
+   for(int y =  0; y < window_height; y++){
+    for(int x = 0; x < window_width; x++){
+      
+      if((y % size <= line_width) || (x % size <= line_width)){
+
+        color_buffer[(window_width * y) + x] = color;
+      }
+    }
+  }
+}
+
+void draw_rectangle(int x, int y, int width, int height, uint32_t color){
+  for(int h = 0; h < height; h++){
+    int current_row = ((h+y)*window_width) + x;
+
+    if(current_row >= (window_height * window_width) || current_row < 0){
+      continue;
+    }
+
+    for(int w = 0; w < width; w++){
+
+
+      if((current_row + w) >= window_width*(h+y+1) + x || (current_row + w) < 0){
+        continue;
+      }
+      color_buffer[current_row + w] = color;
+    }
+  }
+}
+
 void render(void){
   SDL_SetRenderDrawColor(renderer, 222,210,187,25);
   SDL_RenderClear(renderer);
 
-  clear_color_buffer(0xFF)
+  // draw_grid(0xFFFF0000, 100, 20);
+  draw_rectangle(window_width/2, window_height/2, 300, 150, 0xFF00FF00);
+  draw_rectangle(window_width/2, window_height/2, 75, 300, 0xFF000000);
+  render_color_buffer();
+  clear_color_buffer(0xFFFFFF00);
 
   SDL_RenderPresent(renderer);
 }

@@ -60,6 +60,8 @@ add_executable(
 endif()
 
 message("SDL2_IMAGE_INCLUDE_DIRS: ${SDL2_IMAGE_INCLUDE_DIRS}")
+message("SDL2_INCLUDE_DIRS: ${SDL2_INCLUDE_DIRS}")
+
 
 
 include_directories(

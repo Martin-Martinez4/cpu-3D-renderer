@@ -1,4 +1,5 @@
 build/
+.vscode/
 *.d
 
 # Object files
