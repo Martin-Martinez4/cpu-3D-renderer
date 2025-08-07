@@ -67,6 +67,13 @@ void draw_grid(uint32_t color, uint8_t size,uint8_t line_width){
   }
 }
 
+void draw_pixel(int x, int y, uint32_t color){
+  if(x < window_width && y < window_height){
+
+    color_buffer[(window_width * y) + x] = color;
+  }
+}
+
 void draw_rectangle(int x, int y, int width, int height, uint32_t color){
   for(int h = 0; h < height; h++){
     int current_row = ((h+y)*window_width) + x;
@@ -93,6 +100,7 @@ void render(void){
   // draw_grid(0xFFFF0000, 100, 20);
   draw_rectangle(window_width/2, window_height/2, 300, 150, 0xFF00FF00);
   draw_rectangle(window_width/2, window_height/2, 75, 300, 0xFF000000);
+  draw_pixel(window_width/2, window_height/2, 0xFFFFFFFF);
   render_color_buffer();
   clear_color_buffer(0xFFFFFF00);
 

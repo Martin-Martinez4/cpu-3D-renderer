@@ -46,6 +46,7 @@ if(WIN32)
       ${CMAKE_PROJECT_NAME}
       WIN32
       ${CMAKE_SOURCE_DIR}/src/main.c
+      ${CMAKE_SOURCE_DIR}/src/display.c
       ${sources}
       ${app_sources}
 
@@ -67,7 +68,7 @@ message("SDL2_INCLUDE_DIRS: ${SDL2_INCLUDE_DIRS}")
 include_directories(
   ${CMAKE_PROJECT_NAME}
   PUBLIC
-  # ${CMAKE_CURRENT_SOURCE_DIR}/src/
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/
   # ${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/
   ${SDL2_INCLUDE_DIRS}?
   ${SDL2_IMAGE_INCLUDE_DIRS}?

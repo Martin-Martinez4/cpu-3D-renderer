@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <SDL2/SDL.h>
 
 extern SDL_Window* window;
@@ -19,6 +20,7 @@ bool initialize_window(void);
 void render_color_buffer(void);
 void clear_color_buffer(uint32_t color);
 void draw_grid(uint32_t color, uint8_t size,uint8_t line_width);
+void draw_pixel(int x, int y, uint32_t color);
 void draw_rectangle(int x, int y, int width, int height, uint32_t color);
 void render(void);
 
