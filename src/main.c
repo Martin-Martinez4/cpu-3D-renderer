@@ -13,10 +13,12 @@ vec3_t cube_points[N_POINTS];
 vec2_t projected_points[N_POINTS];
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
+vec3_t cube_rotation = { .x = 0, .y = 0, .z = 0};
 
 float fov_factor = 640;
 
 bool is_running = false;
+int previous_frame_time = 0;
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -84,13 +86,27 @@ vec2_t project(vec3_t point){
 }
 
 void update(void){
+
+  while(!SDL_TICKS_PASSED(SDL_GetTicks(), previous_frame_time + FRAME_TARGET_TIME));
+
+  previous_frame_time = SDL_GetTicks();
+
+  cube_rotation.x += 0.01;
+  cube_rotation.y += 0.01;
+  cube_rotation.z += 0.01;
+
+
   for(int i = 0; i < N_POINTS; i++){
     vec3_t point = cube_points[i];
 
-    // Move the points away from the camera
-    point.z -= camera_position.z;
+    vec3_t transformed_point = vec3_rotate_x(point, cube_rotation.x);
+    transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y);
+    transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z);
 
-    vec2_t projected_point = project(point);
+    // Move the points away from the camera
+    transformed_point.z -= camera_position.z;
+
+    vec2_t projected_point = project(transformed_point);
 
     projected_points[i] = projected_point;
   }
@@ -98,7 +114,7 @@ void update(void){
 
 void render(void){
   SDL_RenderClear(renderer);
-  SDL_SetRenderDrawColor(renderer, 222,210,187,25);
+  // SDL_SetRenderDrawColor(renderer, 222,210,187,25);
   // draw_grid(0xFFFF0000, 100, 1);
 
   for(int i =  0; i < N_POINTS; i++){
@@ -123,8 +139,6 @@ int main(void){
   is_running = initialize_window();
 
   setup();
-
-  vec3_t my_vector = { 2.0, 3.0, -4.0 };
 
   while(is_running){
     process_input();
