@@ -68,7 +68,7 @@ void draw_grid(uint32_t color, uint8_t size,uint8_t line_width){
 }
 
 void draw_pixel(int x, int y, uint32_t color){
-  if(x < window_width && y < window_height){
+  if(x >= 0 && x < window_width && y >= 0 && y < window_height){
 
     color_buffer[(window_width * y) + x] = color;
   }
@@ -93,19 +93,6 @@ void draw_rectangle(int x, int y, int width, int height, uint32_t color){
   }
 }
 
-void render(void){
-  SDL_SetRenderDrawColor(renderer, 222,210,187,25);
-  SDL_RenderClear(renderer);
-
-  // draw_grid(0xFFFF0000, 100, 20);
-  draw_rectangle(window_width/2, window_height/2, 300, 150, 0xFF00FF00);
-  draw_rectangle(window_width/2, window_height/2, 75, 300, 0xFF000000);
-  draw_pixel(window_width/2, window_height/2, 0xFFFFFFFF);
-  render_color_buffer();
-  clear_color_buffer(0xFFFFFF00);
-
-  SDL_RenderPresent(renderer);
-}
 
 void destroy_window(void){
   free(color_buffer);

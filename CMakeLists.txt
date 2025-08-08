@@ -35,7 +35,8 @@ endif()
     )
     
     set(app_sources ${app_sources}
-     
+      ${CMAKE_SOURCE_DIR}/src/main.c
+      ${CMAKE_SOURCE_DIR}/src/display.c
     )
 
 
@@ -45,8 +46,6 @@ if(WIN32)
     add_executable(
       ${CMAKE_PROJECT_NAME}
       WIN32
-      ${CMAKE_SOURCE_DIR}/src/main.c
-      ${CMAKE_SOURCE_DIR}/src/display.c
       ${sources}
       ${app_sources}
 
@@ -54,7 +53,6 @@ if(WIN32)
 else()
 add_executable(
     ${CMAKE_PROJECT_NAME}
-    ${CMAKE_SOURCE_DIR}/src/main.c
     ${sources} 
     ${app_sources}
   )
