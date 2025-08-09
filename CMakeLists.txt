@@ -35,9 +35,11 @@ endif()
     )
     
     set(app_sources ${app_sources}
-      ${CMAKE_SOURCE_DIR}/src/main.c
+      ${CMAKE_SOURCE_DIR}/src/triangle.c
+      ${CMAKE_SOURCE_DIR}/src/mesh.c
       ${CMAKE_SOURCE_DIR}/src/display.c
       ${CMAKE_SOURCE_DIR}/src/vector.c
+      ${CMAKE_SOURCE_DIR}/src/main.c
     )
 
 
@@ -82,7 +84,7 @@ include_directories(
     
 # # Link to the actual SDL2 library. SDL2::SDL2 is the shared SDL library, SDL2::SDL2-static is the static SDL libarary.
 # target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL2::SDL2)
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
 
 # # Tests
 # enable_testing()
