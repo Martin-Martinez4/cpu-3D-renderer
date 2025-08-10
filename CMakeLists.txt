@@ -35,6 +35,7 @@ endif()
     )
     
     set(app_sources ${app_sources}
+      ${CMAKE_SOURCE_DIR}/src/array.c
       ${CMAKE_SOURCE_DIR}/src/triangle.c
       ${CMAKE_SOURCE_DIR}/src/mesh.c
       ${CMAKE_SOURCE_DIR}/src/display.c
