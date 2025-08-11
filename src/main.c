@@ -109,7 +109,7 @@ vec2_t project(vec3_t point){
 void update(void){
 
   if(SDL_GetTicks() < previous_frame_time + FRAME_TARGET_TIME){
-    return;
+    continue;
   }
 
   previous_frame_time = SDL_GetTicks();
@@ -168,8 +168,6 @@ void update(void){
       }
     }
 
-    triangle_t projected_triangle;
-
     vec2_t projected_points[3];
 
     // perform projection
@@ -179,22 +177,23 @@ void update(void){
       projected_points[j].x += (window_width / 2);
       projected_points[j].y += (window_height / 2);
 
-      // Calculate average depth after transformation
-      float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)/3;
+      
+    };
+    
+    // Calculate average depth after transformation
+    float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)/3;
 
-      triangle_t projected_triangle = {
-        .points = {
-          { projected_points[0].x, projected_points[0].y },
-          { projected_points[1].x, projected_points[1].y },
-          { projected_points[2].x, projected_points[2].y },
-        },
-        .color = mesh_face.color,
-        .avg_depth = avg_depth
-      };
-
-    }
-
+    triangle_t projected_triangle = {
+      .points = {
+        { projected_points[0].x, projected_points[0].y },
+        { projected_points[1].x, projected_points[1].y },
+        { projected_points[2].x, projected_points[2].y },
+      },
+      .color = mesh_face.color,
+      .avg_depth = avg_depth
+    };
     array_push(triangles_to_render, projected_triangle);
+    
   }
 
   int num_triangles = array_length(triangles_to_render);
