@@ -108,9 +108,7 @@ vec2_t project(vec3_t point){
 
 void update(void){
 
-  if(SDL_GetTicks() < previous_frame_time + FRAME_TARGET_TIME){
-    continue;
-  }
+  while(!SDL_TICKS_PASSED(SDL_GetTicks(), previous_frame_time + FRAME_TARGET_TIME))
 
   previous_frame_time = SDL_GetTicks();
 
