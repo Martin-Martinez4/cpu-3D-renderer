@@ -43,6 +43,33 @@ void setup(void){
   render_method = RENDER_WIRE;
   cull_method = CULL_BACKFACE;
 
+  // note: add testing with g test 
+  // mat4_t m1 = {
+  //   {
+  //     {1,2,3,4},
+  //     {3,2,1,4},
+  //     {1,2,3,4},
+  //     {4,6,5,4}
+  //   }
+  // };
+  // mat4_t m2 = {
+  //   {
+  //     {4,5,6,4},
+  //     {6,5,4,4},
+  //     {4,6,5,4},
+  //     {4,6,5,4}
+  //   }
+  // };
+
+  // mat4_t m4 = mat4_mul_mat4(m1, m2);
+
+  // for(int i = 0; i < 4; i++){
+  //   for(int j = 0; j < 4; j++){
+  //     printf("%f ", m4.m[i][j]);
+  //   }
+  //   printf("\n");
+  // }
+
   color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
   if(!color_buffer){
     SDL_DestroyRenderer(renderer);
@@ -115,14 +142,24 @@ void update(void){
 
   triangles_to_render = NULL;
 
-  mesh.rotation.x += 0.02;
+  mesh.rotation.x += 0.1;
   mesh.rotation.y += 0.02;
   mesh.rotation.z += 0.02;
 
   mesh.scale.x += 0.005;
   mesh.scale.y += 0.005;
 
-  mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+  mesh.translation.x += 0.02;
+  mesh.translation.y += 0.02;
+
+  // camera translation
+  mesh.translation.z = 5.0;
+
+
+  mesh.transformations = mat4_identity();
+  mesh.transformations = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(mesh.translation.x, mesh.translation.y, mesh.translation.z));
+  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_rotation_along_x(mesh.rotation.x));
 
   int num_faces = array_length(mesh.faces);
   for(int i = 0; i < num_faces; i++){
@@ -140,9 +177,9 @@ void update(void){
       vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
       // 
-      transformed_vertex = mat4_mul_vec4(scale_matrix, transformed_vertex);
+      transformed_vertex = mat4_mul_vec4(mesh.transformations, transformed_vertex);
 
-      transformed_vertex.z -= -5;
+      // transformed_vertex.z -= -5;
 
       transformed_vertices[j] = transformed_vertex;
     }

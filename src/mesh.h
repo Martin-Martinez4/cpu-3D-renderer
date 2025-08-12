@@ -3,6 +3,7 @@
 
 #include <vector.h>
 #include <triangle.h>
+#include "matrix.h"
 
 #define N_MESH_VERTS 8
 extern vec3_t mesh_vertices[N_MESH_VERTS];
@@ -16,6 +17,7 @@ typedef struct {
   vec3_t rotation;
   vec3_t scale;
   vec3_t translation;
+  mat4_t transformations;
 } mesh_t;
 
 extern mesh_t mesh;
