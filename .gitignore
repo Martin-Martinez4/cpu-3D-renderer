@@ -1,5 +1,6 @@
 build/
 .vscode/
+
 *.d
 
 # Object files
@@ -54,3 +55,6 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# add back assets files
+!assets/*
