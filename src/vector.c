@@ -111,10 +111,10 @@ float vec3_dot(vec3_t a, vec3_t b){
 }
 
 void vec3_normalize(vec3_t* v){
-  float length = vec3_length(*v);
-  v->x = v->x / length;
-  v->y = v->y / length;
-  v->z = v->z / length;
+   float length = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+    v->x /= length;
+    v->y /= length;
+    v->z /= length;
 }
 
 

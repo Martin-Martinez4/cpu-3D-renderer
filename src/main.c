@@ -10,6 +10,7 @@
 #include "matrix.h"
 #include "mesh.h"
 #include "array.h"
+#include "light.h"
 
 const float PI = 3.14159265358979323846;
 
@@ -66,8 +67,8 @@ void setup(void){
   float zfar = 100.0;
   proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
 
-  // load_obj_file_data("./assets/cube.obj");
-  load_cube_mesh_data();
+  load_obj_file_data("./assets/f22.obj");
+  // load_cube_mesh_data();
 }
 
 void process_input(void){
@@ -124,7 +125,7 @@ void update(void){
   triangles_to_render = NULL;
 
   mesh.rotation.x += 0.1;
-  mesh.rotation.y += 0.02;
+  // mesh.rotation.y += 0.02;
   mesh.rotation.z += 0.02;
 
   mesh.scale.x += 0.005;
@@ -140,9 +141,11 @@ void update(void){
   mesh.transformations = mat4_identity();
   // mesh.transformations = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
   // mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(mesh.translation.x, mesh.translation.y, mesh.translation.z));
-  // mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_rotation_along_x(mesh.rotation.x));
+   mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(0, 0, mesh.translation.z));
+  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_rotation_along_x(mesh.rotation.x));
+  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_rotation_along_y(mesh.rotation.y));
 
-  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(0, 0, mesh.translation.z));
+  // mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(0, 0, mesh.translation.z));
 
 
   int num_faces = array_length(mesh.faces);
@@ -168,8 +171,6 @@ void update(void){
       transformed_vertices[j] = transformed_vertex;
     }
 
-    if(cull_method == CULL_BACKFACE){
-
       // check for back-face culling
       vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]);
       vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]);
@@ -186,11 +187,13 @@ void update(void){
       vec3_t camera_ray = vec3_sub(camera_position, vector_a);
   
       float dot_normal_camera = vec3_dot(normal, camera_ray);
-  
-      if(dot_normal_camera < 0){
-        continue;
+
+      if(cull_method == CULL_BACKFACE){
+
+        if(dot_normal_camera < 0){
+          continue;
+        }
       }
-    }
 
     vec4_t projected_points[3];
 
@@ -210,7 +213,12 @@ void update(void){
     };
     
     // Calculate average depth after transformation
-    float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)/3;
+    float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)/3.0;
+
+    // calculate color based on light angle
+    float light_intensity_factor = -vec3_dot(normal, light.direction);
+
+    uint32_t triangle_color = light_apply_intensity(mesh_face.color, light_intensity_factor);
 
     triangle_t projected_triangle = {
       .points = {
@@ -218,7 +226,7 @@ void update(void){
         { projected_points[1].x, projected_points[1].y },
         { projected_points[2].x, projected_points[2].y },
       },
-      .color = mesh_face.color,
+      .color = triangle_color,
       .avg_depth = avg_depth
     };
     array_push(triangles_to_render, projected_triangle);
