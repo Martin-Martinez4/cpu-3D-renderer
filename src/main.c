@@ -302,7 +302,8 @@ void render(void){
               triangle.points[2].x,
               triangle.points[2].y,
               triangle.textcoords[2].u,
-              triangle.textcoords[2].v
+              triangle.textcoords[2].v,
+              mesh_texture
           );
         }
 
