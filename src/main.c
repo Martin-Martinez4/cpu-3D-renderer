@@ -74,8 +74,15 @@ void setup(void){
   texture_width = 64;
   texture_height = 64;
 
-  // load_obj_file_data("./assets/f22.obj");
-  load_cube_mesh_data();
+  load_obj_file_data("./assets/drone.obj");
+  // load_cube_mesh_data();
+  if(!load_png_texture_data("./assets/drone.png")){
+    fprintf(stderr, " An error occured when loding texture from file\n");
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    exit(EXIT_FAILURE);
+  }
 }
 
 void process_input(void){
@@ -109,41 +116,31 @@ void process_input(void){
   }
 }
 
-// vec2_t project(vec3_t point){
-//   vec2_t projected_point = {
-//     .x = (fov_factor * point.x)/point.z,
-//     .y = (fov_factor * point.y)/point.z,
-//   };
+int compare (const void * a, const void * b){
+  triangle_t fa = *(const triangle_t*) a;
+  triangle_t fb = *(const triangle_t*) b;
 
-//   return projected_point;
-
-// }
-
- int compare (const void * a, const void * b){
-    triangle_t fa = *(const triangle_t*) a;
-    triangle_t fb = *(const triangle_t*) b;
-
-    // trick to return -1, 0, 1 when comparing floats
-    return (fa.avg_depth < fb.avg_depth) - (fa.avg_depth > fb.avg_depth);
-  }
+  // trick to return -1, 0, 1 when comparing floats
+  return (fa.avg_depth < fb.avg_depth) - (fa.avg_depth > fb.avg_depth);
+}
 
 void update(void){
 
-  while(!SDL_TICKS_PASSED(SDL_GetTicks(), previous_frame_time + FRAME_TARGET_TIME))
+  // Wait some time until the reach the target frame time in milliseconds
+  int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+
+  // Only delay execution if we are running too fast
+  if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+      SDL_Delay(time_to_wait);
+  }
 
   previous_frame_time = SDL_GetTicks();
 
   triangles_to_render = NULL;
 
-  mesh.rotation.x += 0.1;
-  // mesh.rotation.y += 0.02;
-  mesh.rotation.z += 0.02;
-
-  mesh.scale.x += 0.005;
-  mesh.scale.y += 0.005;
-
-  mesh.translation.x += 0.02;
-  mesh.translation.y += 0.02;
+  mesh.rotation.x += -0.03;
+  mesh.rotation.y += 0.04;
+  mesh.rotation.z += 0.000;
 
   // camera translation
   mesh.translation.z = 5.0;
@@ -152,9 +149,9 @@ void update(void){
   mesh.transformations = mat4_identity();
   // mesh.transformations = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
   // mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(mesh.translation.x, mesh.translation.y, mesh.translation.z));
-   mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(0, 0, mesh.translation.z));
-  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_rotation_along_x(mesh.rotation.x));
+  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(0, 0, mesh.translation.z));
   mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_rotation_along_y(mesh.rotation.y));
+  mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_rotation_along_x(mesh.rotation.x));
 
   // mesh.transformations = mat4_mul_mat4(mesh.transformations, mat4_make_translate(0, 0, mesh.translation.z));
 
@@ -164,9 +161,9 @@ void update(void){
     face_t mesh_face = mesh.faces[i];
 
     vec3_t face_vertices[3];
-    face_vertices[0] = mesh.vertices[mesh_face.a - 1];
-    face_vertices[1] = mesh.vertices[mesh_face.b - 1];
-    face_vertices[2] = mesh.vertices[mesh_face.c -1];
+    face_vertices[0] = mesh.vertices[mesh_face.a];
+    face_vertices[1] = mesh.vertices[mesh_face.b];
+    face_vertices[2] = mesh.vertices[mesh_face.c];
 
 
     vec4_t transformed_vertices[3];
