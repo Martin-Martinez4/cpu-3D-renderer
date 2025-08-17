@@ -12,6 +12,7 @@
 #include "array.h"
 #include "light.h"
 #include "texture.h"
+#include "camera.h"
 
 #define MAX_TRIANGLE_PER_MESH 10000
 const float PI = 3.14159265358979323846;
@@ -39,12 +40,13 @@ int previous_frame_time = 0;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 SDL_Texture* color_buffer_texture = NULL;
 uint32_t* color_buffer = NULL;
 int window_width = 800;
 int window_height = 600;
+
 mat4_t proj_matrix;
+mat4_t view_matrix;
 
 
 void setup(void){
@@ -83,9 +85,9 @@ void setup(void){
   texture_width = 64;
   texture_height = 64;
 
-  load_obj_file_data("./assets/f22.obj");
+  load_obj_file_data("./assets/efa.obj");
   // load_cube_mesh_data();
-  if(!load_png_texture_data("./assets/f22.png")){
+  if(!load_png_texture_data("./assets/efa.png")){
     fprintf(stderr, " An error occured when loding texture from file\n");
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -154,6 +156,14 @@ void update(void){
   // camera translation
   mesh.translation.z = 5.0;
 
+  camera.position.x += 0.01;
+  camera.position.y += 0.01;
+
+
+  // create the view matrix looking at target point
+  vec3_t target = { 0, 0, 4.0 };
+  vec3_t up_direction = { 0, 1, 0 };
+  mat4_t view_matrix = mat4_look_at(camera.position, target, up_direction);
 
   mesh.transformations = mat4_identity();
   // mesh.transformations = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
@@ -183,7 +193,7 @@ void update(void){
       // 
       transformed_vertex = mat4_mul_vec4(mesh.transformations, transformed_vertex);
 
-      // transformed_vertex.z -= -5;
+      transformed_vertex = mat4_mul_vec4(view_matrix, transformed_vertex);
 
       transformed_vertices[j] = transformed_vertex;
     }
@@ -200,8 +210,9 @@ void update(void){
   
       vec3_t normal = vec3_cross(vector_ab, vector_ac);
       vec3_normalize(&normal);
-  
-      vec3_t camera_ray = vec3_sub(camera_position, vector_a);
+
+      vec3_t origin = { 0, 0 ,0 };
+      vec3_t camera_ray = vec3_sub(origin, vector_a);
   
       float dot_normal_camera = vec3_dot(normal, camera_ray);
 
