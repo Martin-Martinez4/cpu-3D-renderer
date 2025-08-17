@@ -13,6 +13,7 @@
 #include "light.h"
 #include "texture.h"
 
+#define MAX_TRIANGLE_PER_MESH 10000
 const float PI = 3.14159265358979323846;
 
 enum cull_method{
@@ -29,7 +30,8 @@ enum render_method {
   RENDER_TEXTURED_WIRE
 } render_method;
 
-triangle_t* triangles_to_render = NULL;
+triangle_t triangles_to_render[MAX_TRIANGLE_PER_MESH];
+int num_triangle_to_render = 0;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -55,6 +57,13 @@ void setup(void){
     SDL_DestroyWindow(window);
     SDL_Quit();
   }
+
+  z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
+   if(!z_buffer){
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+  }
   // SDL_PIXELFORMAT_ARGB8888 Aplha, Red, Green, Blue, 8, 8, 8, 8
   color_buffer_texture = SDL_CreateTexture(
     renderer,
@@ -74,9 +83,9 @@ void setup(void){
   texture_width = 64;
   texture_height = 64;
 
-  load_obj_file_data("./assets/drone.obj");
+  load_obj_file_data("./assets/f22.obj");
   // load_cube_mesh_data();
-  if(!load_png_texture_data("./assets/drone.png")){
+  if(!load_png_texture_data("./assets/f22.png")){
     fprintf(stderr, " An error occured when loding texture from file\n");
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -136,7 +145,7 @@ void update(void){
 
   previous_frame_time = SDL_GetTicks();
 
-  triangles_to_render = NULL;
+  num_triangle_to_render = 0;
 
   mesh.rotation.x += -0.03;
   mesh.rotation.y += 0.04;
@@ -223,9 +232,6 @@ void update(void){
       
     };
     
-    // Calculate average depth after transformation
-    float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)/3.0;
-
     // calculate color based on light angle
     float light_intensity_factor = -vec3_dot(normal, light.direction);
 
@@ -243,15 +249,14 @@ void update(void){
         { mesh_face.c_uv.u, mesh_face.c_uv.v }
       },
       .color = triangle_color,
-      .avg_depth = avg_depth
     };
-    array_push(triangles_to_render, projected_triangle);
+    if(num_triangle_to_render < MAX_TRIANGLE_PER_MESH){
+      triangles_to_render[num_triangle_to_render] = projected_triangle;
+      num_triangle_to_render++;
+
+    }
     
   }
-
-  int num_triangles = array_length(triangles_to_render);
-  qsort(triangles_to_render, num_triangles, sizeof(triangle_t), compare);
- 
 
 }
 
@@ -261,24 +266,27 @@ void render(void){
   // draw_grid(0xFFFF0000, 100, 1);
 
    // Loop all projected triangles and render them
-    int num_triangles = array_length(triangles_to_render);
-    for (int i = 0; i < num_triangles; i++) {
+    
+    for (int i = 0; i < num_triangle_to_render; i++) {
         triangle_t triangle = triangles_to_render[i];
-
-        // Draw vertex points
-        // draw_rectangle(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFFFF00);
-        // draw_rectangle(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFFFF00);
-        // draw_rectangle(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFFFF00);
 
         if(render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIRE){
 
           draw_filled_triangle(
               triangle.points[0].x,
               triangle.points[0].y,
+              triangle.points[0].z,
+              triangle.points[0].w,
+
               triangle.points[1].x,
               triangle.points[1].y,
+              triangle.points[1].z,
+              triangle.points[1].w,
+
               triangle.points[2].x,
               triangle.points[2].y,
+              triangle.points[2].z,
+              triangle.points[2].w,
               triangle.color
           );
         }
@@ -330,20 +338,17 @@ void render(void){
             draw_rectangle(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6, 0xFFFF0000); // vertex C
         }
     }
-
-
-  // draw_filled_triangle(300, 100, 50, 400, 500, 700, 0xFF00FF00);
-
-  array_free(triangles_to_render);
   
   render_color_buffer();
   clear_color_buffer(0xFF000000);
+  clear_z_buffer();
 
   SDL_RenderPresent(renderer);
 }
 
 void free_resources(void) {
     free(color_buffer);
+    free(z_buffer);
     array_free(mesh.faces);
     array_free(mesh.vertices);
 }

@@ -13,6 +13,7 @@ extern SDL_Window* window;
 extern SDL_Renderer* renderer;
 extern SDL_Texture* color_buffer_texture;
 extern uint32_t* color_buffer;
+extern float* z_buffer;
 extern int window_width;
 extern int window_height;
 
@@ -22,6 +23,7 @@ extern int window_height;
 bool initialize_window(void);
 void render_color_buffer(void);
 void clear_color_buffer(uint32_t color);
+void clear_z_buffer(void);
 void draw_grid(uint32_t color, uint8_t size,uint8_t line_width);
 void draw_pixel(int x, int y, uint32_t color);
 void draw_line(int x0, int y0, int x1, int y1, uint32_t color);

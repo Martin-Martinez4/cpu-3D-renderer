@@ -1,6 +1,6 @@
 #include "display.h"
 
-
+float* z_buffer = NULL;
 
 bool initialize_window(void){
   if(SDL_Init(SDL_INIT_EVERYTHING) != 0){
@@ -51,6 +51,14 @@ void clear_color_buffer(uint32_t color){
   for(int y =  0; y < window_height; y++){
     for(int x = 0; x < window_width; x++){
       color_buffer[(window_width * y) + x] = color;
+    }
+  }
+}
+
+void clear_z_buffer(void){
+  for(int y =  0; y < window_height; y++){
+    for(int x = 0; x < window_width; x++){
+      z_buffer[(window_width * y) + x] = 1.0;
     }
   }
 }
