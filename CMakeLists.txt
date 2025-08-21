@@ -42,6 +42,7 @@ endif()
       ${CMAKE_SOURCE_DIR}/src/mesh.c
       ${CMAKE_SOURCE_DIR}/src/display.c
       ${CMAKE_SOURCE_DIR}/src/vector.c
+      ${CMAKE_SOURCE_DIR}/src/clipping.c
       ${CMAKE_SOURCE_DIR}/src/matrix.c
       ${CMAKE_SOURCE_DIR}/src/light.c
       ${CMAKE_SOURCE_DIR}/src/camera.c
