@@ -12,6 +12,7 @@
 #include "array.h"
 #include "light.h"
 #include "texture.h"
+#include "clipping.h"
 #include "camera.h"
 
 #define MAX_TRIANGLE_PER_MESH 10000
@@ -78,9 +79,11 @@ void setup(void){
 
   float fov = PI/3;
   float aspect = (float)window_height / (float)window_width;
-  float znear = 0.1;
-  float zfar = 100.0;
-  proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
+  float z_near = 0.1;
+  float z_far = 100.0;
+  proj_matrix = mat4_make_perspective(fov, aspect, z_near, z_far);
+
+  init_frustum_planes(fov, z_near, z_far);
 
   mesh_texture = (uint32_t*)REDBRICK_TEXTURE; 
   texture_width = 64;
@@ -202,6 +205,7 @@ void update(void){
 
   int num_faces = array_length(mesh.faces);
   for(int i = 0; i < num_faces; i++){
+
     face_t mesh_face = mesh.faces[i];
 
     vec3_t face_vertices[3];
@@ -247,6 +251,15 @@ void update(void){
           continue;
         }
       }
+
+      // clipping
+      polygon_t polygon = create_polygon_from_triangle(
+        vec3_from_vec4(transformed_vertices[0]),
+        vec3_from_vec4(transformed_vertices[1]),
+        vec3_from_vec4(transformed_vertices[2])
+      );
+
+      clip_polygon(&polygon);
 
     vec4_t projected_points[3];
 
