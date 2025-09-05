@@ -77,13 +77,16 @@ void setup(void){
     window_height
   );
 
-  float fov = PI/3;
-  float aspect = (float)window_height / (float)window_width;
+  // 60deg
+  float aspecty = (float)window_height / (float)window_width;
+  float aspectx = (float)window_width / (float)window_height;
+  float fovy = PI/3;
+  float fovx = atan(tan(fovy / 2) * aspectx) * 2.0;
   float z_near = 0.1;
   float z_far = 100.0;
-  proj_matrix = mat4_make_perspective(fov, aspect, z_near, z_far);
+  proj_matrix = mat4_make_perspective(fovy, aspecty, z_near, z_far);
 
-  init_frustum_planes(fov, z_near, z_far);
+  init_frustum_planes(fovy, fovx, z_near, z_far);
 
   mesh_texture = (uint32_t*)REDBRICK_TEXTURE; 
   texture_width = 64;
@@ -217,94 +220,106 @@ void update(void){
     vec4_t transformed_vertices[3];
 
     for(int j = 0; j < 3; j++){
-      vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
+        vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
-      // 
-      transformed_vertex = mat4_mul_vec4(mesh.transformations, transformed_vertex);
+        // 
+        transformed_vertex = mat4_mul_vec4(mesh.transformations, transformed_vertex);
 
-      transformed_vertex = mat4_mul_vec4(view_matrix, transformed_vertex);
+        transformed_vertex = mat4_mul_vec4(view_matrix, transformed_vertex);
 
-      transformed_vertices[j] = transformed_vertex;
-    }
-
-      // check for back-face culling
-      vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]);
-      vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]);
-      vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]);
-  
-      vec3_t vector_ab = vec3_sub(vector_b, vector_a);
-      vec3_t vector_ac = vec3_sub(vector_c, vector_a);
-      vec3_normalize(&vector_ab);
-      vec3_normalize(&vector_ac);
-  
-      vec3_t normal = vec3_cross(vector_ab, vector_ac);
-      vec3_normalize(&normal);
-
-      vec3_t origin = { 0, 0 ,0 };
-      vec3_t camera_ray = vec3_sub(origin, vector_a);
-  
-      float dot_normal_camera = vec3_dot(normal, camera_ray);
-
-      if(cull_method == CULL_BACKFACE){
-
-        if(dot_normal_camera < 0){
-          continue;
-        }
+        transformed_vertices[j] = transformed_vertex;
       }
 
-      // clipping
-      polygon_t polygon = create_polygon_from_triangle(
-        vec3_from_vec4(transformed_vertices[0]),
-        vec3_from_vec4(transformed_vertices[1]),
-        vec3_from_vec4(transformed_vertices[2])
-      );
-
-      clip_polygon(&polygon);
-
-    vec4_t projected_points[3];
-
-    // perform projection
-    for(int j = 0; j < 3; j++){
-      projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
-
-      // scale into view
-      projected_points[j].x *= (window_width / 2.0);
-      projected_points[j].y *= (window_height / 2.0);
-
-      // invert y to account for flipped screen y coordinate
-      projected_points[j].y *= -1;
-
-      // translate to middle of screen
-      projected_points[j].x += (window_width / 2.0);
-      projected_points[j].y += (window_height / 2.0);
-
-      
-    };
+        // check for back-face culling
+        vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]);
+        vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]);
+        vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]);
     
-    // calculate color based on light angle
-    float light_intensity_factor = -vec3_dot(normal, light.direction);
-
-    uint32_t triangle_color = light_apply_intensity(mesh_face.color, light_intensity_factor);
-
-    triangle_t projected_triangle = {
-      .points = {
-        { projected_points[0].x, projected_points[0].y, projected_points[0].z , projected_points[0].w },
-        { projected_points[1].x, projected_points[1].y, projected_points[1].z , projected_points[1].w },
-        { projected_points[2].x, projected_points[2].y, projected_points[2].z , projected_points[2].w },
-      },
-      .textcoords = {
-        { mesh_face.a_uv.u, mesh_face.a_uv.v },
-        { mesh_face.b_uv.u, mesh_face.b_uv.v },
-        { mesh_face.c_uv.u, mesh_face.c_uv.v }
-      },
-      .color = triangle_color,
-    };
-    if(num_triangle_to_render < MAX_TRIANGLE_PER_MESH){
-      triangles_to_render[num_triangle_to_render] = projected_triangle;
-      num_triangle_to_render++;
-
-    }
+        vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+        vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+        vec3_normalize(&vector_ab);
+        vec3_normalize(&vector_ac);
     
+        vec3_t normal = vec3_cross(vector_ab, vector_ac);
+        vec3_normalize(&normal);
+
+        vec3_t origin = { 0, 0 ,0 };
+        vec3_t camera_ray = vec3_sub(origin, vector_a);
+    
+        float dot_normal_camera = vec3_dot(normal, camera_ray);
+
+        if(cull_method == CULL_BACKFACE){
+
+          if(dot_normal_camera < 0){
+            continue;
+          }
+        }
+
+        // clipping
+        polygon_t polygon = create_polygon_from_triangle(
+          vec3_from_vec4(transformed_vertices[0]),
+          vec3_from_vec4(transformed_vertices[1]),
+          vec3_from_vec4(transformed_vertices[2]),
+          mesh_face.a_uv,
+          mesh_face.b_uv,
+          mesh_face.c_uv
+        );
+
+        clip_polygon(&polygon);
+
+        triangle_t triangles_after_clipping[MAX_NUM_POLY_TRIANGLES];
+        int num_triangles_after_clipping = 0;
+        
+        triangle_from_polygon(&polygon, triangles_after_clipping, &num_triangles_after_clipping);
+
+         for (int t = 0; t < num_triangles_after_clipping; t++) {
+          triangle_t triangle_after_clipping = triangles_after_clipping[t];
+
+        vec4_t projected_points[3];
+
+
+        // perform projection
+        for(int j = 0; j < 3; j++){
+          projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
+
+          // scale into view
+          projected_points[j].x *= (window_width / 2.0);
+          projected_points[j].y *= (window_height / 2.0);
+
+          // invert y to account for flipped screen y coordinate
+          projected_points[j].y *= -1;
+
+          // translate to middle of screen
+          projected_points[j].x += (window_width / 2.0);
+          projected_points[j].y += (window_height / 2.0);
+
+          
+        };
+        
+        // calculate color based on light angle
+        float light_intensity_factor = -vec3_dot(normal, light.direction);
+
+        uint32_t triangle_color = light_apply_intensity(mesh_face.color, light_intensity_factor);
+
+        triangle_t triangle_to_render = {
+          .points = {
+            { projected_points[0].x, projected_points[0].y, projected_points[0].z , projected_points[0].w },
+            { projected_points[1].x, projected_points[1].y, projected_points[1].z , projected_points[1].w },
+            { projected_points[2].x, projected_points[2].y, projected_points[2].z , projected_points[2].w },
+          },
+          .textcoords = {
+            { triangle_after_clipping.textcoords[0].u, triangle_after_clipping.textcoords[0].v },
+            { triangle_after_clipping.textcoords[1].u, triangle_after_clipping.textcoords[1].v },
+            { triangle_after_clipping.textcoords[2].u, triangle_after_clipping.textcoords[2].v }
+          },
+          .color = triangle_color,
+        };
+        if(num_triangle_to_render < MAX_TRIANGLE_PER_MESH){
+          triangles_to_render[num_triangle_to_render++] = triangle_to_render;
+          // num_triangle_to_render++;
+
+        }
+    }    
   }
 
 }

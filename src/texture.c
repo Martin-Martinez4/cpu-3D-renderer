@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "texture.h"
 
 int texture_width = 64;
 int texture_height = 64;
@@ -29,6 +30,11 @@ bool load_png_texture_data(const char* filename){
 
     return true;
     
+}
+
+tex2_t tex2_clone(tex2_t* t){
+    tex2_t result = { t->u, t->v };
+    return result;
 }
 
 const uint8_t REDBRICK_TEXTURE[] = {

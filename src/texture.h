@@ -13,7 +13,9 @@ typedef struct {
 extern int texture_width;
 extern int texture_height;
 
-bool load_png_texture_data(char* filename);
+bool load_png_texture_data(const char* filename);
+
+tex2_t tex2_clone(tex2_t* t);
 
 extern const uint8_t REDBRICK_TEXTURE[];
 extern uint32_t* mesh_texture;
